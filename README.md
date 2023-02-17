@@ -1,1 +1,1 @@
-# Miden-with-TenderMint
+# Miden-with-Tendermint
