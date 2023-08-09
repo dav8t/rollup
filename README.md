@@ -1,1 +1,1 @@
-# miden-with-tendermint
+# midorii
