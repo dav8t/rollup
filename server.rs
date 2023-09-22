@@ -10,14 +10,14 @@ use tokio::sync::mpsc;
 use std::net::{IpAddr, SocketAddr};
 
 #[derive(Clone)]
-struct MidoriServer(SocketAddr, mpsc::Sender<SignedTx>);
+struct PapyrusServer(SocketAddr, mpsc::Sender<SignedTx>);
 
 #[tarpc::server]
-impl MidoriRPC for MidoriServer {
+impl PapyrusRPC for PapyrusServer {
     async fn submit_transaction(
         self,
         _: context::Context,
-        tx: midori_api::SignedTx,
+        tx: papyrus_api::SignedTx,
     ) -> Result<(), String> {
         self.1.send(tx.clone()).await.unwrap();
         Ok(())
@@ -37,7 +37,7 @@ pub async fn run_server(sx: mpsc::Sender<SignedTx>, addr: String, port: u16) -> 
         .map(server::BaseChannel::with_defaults)
         .max_channels_per_key(1, |t| t.transport().peer_addr().unwrap().ip())
         .map(|channel| {
-            let server = MidoriServer(channel.transport().peer_addr().unwrap(), sx.clone());
+            let server = PapyrusServer(channel.transport().peer_addr().unwrap(), sx.clone());
             channel.execute(server.serve())
         })
         .buffer_unordered(10)
