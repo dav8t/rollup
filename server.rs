@@ -10,14 +10,14 @@ use tokio::sync::mpsc;
 use std::net::{IpAddr, SocketAddr};
 
 #[derive(Clone)]
-struct PamphletServer(SocketAddr, mpsc::Sender<SignedTx>);
+struct RollupServer(SocketAddr, mpsc::Sender<SignedTx>);
 
 #[tarpc::server]
-impl PamphletRPC for PamphletServer {
+impl RollupRPC for RollupServer {
     async fn submit_transaction(
         self,
         _: context::Context,
-        tx: pamphlet_api::SignedTx,
+        tx: rollup_api::SignedTx,
     ) -> Result<(), String> {
         self.1.send(tx.clone()).await.unwrap();
         Ok(())
@@ -37,7 +37,7 @@ pub async fn run_server(sx: mpsc::Sender<SignedTx>, addr: String, port: u16) -> 
         .map(server::BaseChannel::with_defaults)
         .max_channels_per_key(1, |t| t.transport().peer_addr().unwrap().ip())
         .map(|channel| {
-            let server = PamphletServer(channel.transport().peer_addr().unwrap(), sx.clone());
+            let server = RollupServer(channel.transport().peer_addr().unwrap(), sx.clone());
             channel.execute(server.serve())
         })
         .buffer_unordered(10)
